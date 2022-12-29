@@ -5,8 +5,10 @@ from flask_cors import CORS
 import random 
 from pymongo import MongoClient
 from send_data import send_data
+from pass_mongo import pass_mongo
 
-CONNECTION_STRING = "mongodb://danangwahyu:Semangat45@ac-d7hxbx4-shard-00-00.u7vhogz.mongodb.net:27017,ac-d7hxbx4-shard-00-01.u7vhogz.mongodb.net:27017,ac-d7hxbx4-shard-00-02.u7vhogz.mongodb.net:27017/?ssl=true&replicaSet=atlas-n0tl0g-shard-0&authSource=admin&retryWrites=true&w=majority"
+pass_mongo = pass_mongo()
+CONNECTION_STRING = "mongodb://danangwahyu:{}@ac-d7hxbx4-shard-00-00.u7vhogz.mongodb.net:27017,ac-d7hxbx4-shard-00-01.u7vhogz.mongodb.net:27017,ac-d7hxbx4-shard-00-02.u7vhogz.mongodb.net:27017/?ssl=true&replicaSet=atlas-n0tl0g-shard-0&authSource=admin&retryWrites=true&w=majority".format(pass_mongo)
 
 client = MongoClient(CONNECTION_STRING)
 dbname = client["vital_signs"]
