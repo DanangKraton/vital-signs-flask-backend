@@ -30,22 +30,19 @@ class add_data(Resource):
         data_heat = float(request.form["data_heat"])
         data_oksi = float(request.form["data_oksi"])
         data_IR = float(request.form["data_IR"])
+        
         data_vital_signs["data_heart"] = data_heart
         data_vital_signs["data_heat"] = data_heat
         data_vital_signs["data_oksi"] = data_oksi
         data_vital_signs["data_IR"] = data_IR
         data_vital_signs["data_bp"] = data_IR**2
+
         db_ir.insert_one(send_data("raw_ir", data_IR))
         db_bp.insert_one(send_data("blood_pressure", data_IR**2))
         db_heat.insert_one(send_data("heat_body", data_heat))
         db_heart.insert_one(send_data("heart_rate", data_heart))
         db_oksi.insert_one(send_data("oksi", data_oksi))
 
-
-        # db_bp.insert_one({"data": data_IR**2})
-        # db_heat.insert_one({"data": data_heat})
-        # db_heart.insert_one({"data": data_heart})
-        # db_oksi.insert_one({"data": data_oksi})
         return {"msg": "Data tersimpan",
         "data": data_vital_signs}
 
