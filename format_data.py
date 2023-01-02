@@ -1,6 +1,6 @@
 def save_data(data):
     return {
-        "data": data,
+        "data": float(data),
     }
 
 def send_data(jam, menit, data):

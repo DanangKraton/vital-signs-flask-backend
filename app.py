@@ -1,15 +1,11 @@
-from flask import Flask, request
-# from flask_pymongo import PyMongo
-from flask_restful import Resource, Api
-from flask_cors import CORS
-import random 
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO
+from random import random, randint  
+from datetime import datetime
 from pymongo import MongoClient
 from format_data import save_data, send_data
 from pass_mongo import pass_mongo
-from bson.json_util import dumps, loads
-from datetime import datetime
 import pytz
-from bson import ObjectId
 
 
 pass_mongo = pass_mongo()
@@ -28,117 +24,81 @@ last_heat_id = None
 last_heart_id = None
 last_oksi_id = None
 
-
-app = Flask(__name__)
-
-api = Api(app)
-CORS(app)
-
 tmzone = pytz.timezone('asia/jakarta')
 
-class add_data(Resource):
-    def post(self):
-        data_heart = float(request.form["data_heart"])
-        data_heat = float(request.form["data_heat"])
-        data_oksi = float(request.form["data_oksi"])
-        data_IR = float(request.form["data_IR"])
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'donsky!'
+socketio = SocketIO(app, cors_allowed_origins='*')
 
-        db_ir.insert_one(save_data(data_IR))
-        db_heat.insert_one(save_data(data_heat))
-        db_heart.insert_one(save_data(data_heart))
-        db_oksi.insert_one(save_data(data_oksi))
+"""
+Get current date time
+"""
+def get_current_datetime():
+    now = datetime.now()
+    return now.strftime("%m/%d/%Y %H:%M:%S")
 
-        # replace kapan kapan
-        data_bp = float(random.randint(50, 120))
-        db_bp.insert_one(save_data(data_bp))
+"""
+Generate random sequence of dummy sensor values and send it to our clients
+"""
 
-        return {"msg": "Data tersimpan"}
+def background_thread(ev):
+    while True:
+        dummy_sensor_value = round(random() * 100, 3)
+        socketio.emit(ev, {'value': dummy_sensor_value, "date": get_current_datetime()})
+        socketio.sleep(1)
 
-class bp(Resource):
-    def get(self):
-        global last_bp_id
-        global tmzone
-        if last_bp_id == None:
-            last_bp_id = db_bp.find().sort('_id', -1).limit(3)[0]['_id']
-        last_data = db_bp.find({
-            '_id':{
-                '$gt': last_bp_id
-            }
-        }).limit(1)
-        try:
-            last_bp_id = last_data[0]['_id']
-            time = last_bp_id.generation_time.astimezone(tmzone)
-            data = last_data[0]['data']
-            return send_data(time.hour, time.minute, data)
-        except:
-            return {'msg' : "noting"}
+"""
+Serve root index file
+"""
+@app.route('/')
+def index():
+    return render_template('index.html')
 
-class heat(Resource):
-    # global last_heat_id
-    def get(self):
-        global last_heat_id
-        global tmzone
-        if last_heat_id == None:
-            last_heat_id = db_heat.find().sort('_id', -1).limit(3)[0]['_id']
-        last_data = db_heat.find({
-            '_id':{
-                '$gt': last_heat_id
-            }
-        }).limit(1)
-        try:
-            last_heat_id = last_data[0]['_id']
-            time = last_heat_id.generation_time.astimezone(tmzone)
-            data = last_data[0]['data']
-            return send_data(time.hour, time.minute, data)
-        except:
-            return {'msg' : "noting"}
+"""
+Decorator for connect
+"""
+@socketio.on('save_data')
+def save_data(message):
+    data_heart = message['data_heart']
+    data_heat = message['data_heat']
+    data_oksi = message['data_oksi']
+    data_ir = message['data_ir']
+    data_bp = randint(50, 120)
 
-class oksi(Resource):
-    def get(self):
-        global last_oksi_id
-        global tmzone
-        if last_oksi_id == None:
-            last_oksi_id = db_oksi.find().sort('_id', -1).limit(3)[0]['_id']
-        last_data = db_oksi.find({
-            '_id':{
-                '$gt': last_oksi_id
-            }
-        }).limit(1)
-        try:
-            last_oksi_id = last_data[0]['_id']
-            time = last_oksi_id.generation_time.astimezone(tmzone)
-            data = last_data[0]['data']
-            return send_data(time.hour, time.minute, data)
-        except:
-            return {'msg' : "noting"}
+    # print(type(data_ir))
+    db_ir.insert_one(save_data(data_ir))
+    db_heat.insert_one(save_data(data_heat))
+    db_heart.insert_one(save_data(data_heart))
+    db_oksi.insert_one(save_data(data_oksi))
+    db_bp.insert_one(save_data(data_bp))
 
-class heart(Resource):
-    def get(self):
-        global last_heart_id
-        global tmzone
-        if last_heart_id == None:
-            last_heart_id = db_heart.find().sort('_id', -1).limit(3)[0]['_id']
-        last_data = db_heart.find({
-            '_id':{
-                '$gt': last_heart_id
-            }
-        }).limit(1)
-        try:
-            last_heart_id = last_data[0]['_id']
-            time = last_heart_id.generation_time.astimezone(tmzone)
-            data = last_data[0]['data']
-            return send_data(time.hour, time.minute, data)
-        except:
-            return {'msg' : "noting"}
-
-api.add_resource(add_data, "/send", methods = ["POST"])
-api.add_resource(bp, "/bp", methods = ["GET"])
-api.add_resource(heat, "/heat", methods = ["GET"])
-api.add_resource(oksi, "/oksi", methods = ["GET"])
-api.add_resource(heart, "/heart", methods = ["GET"])
+    socketio.emit('tempel', {'data': 'data_heart: {}, data_heat: {}, data_oksi: {}'.format(str(type(data_heart)), str(type(data_bp)), data_heat)})
+    
 
 
 
+@socketio.on('bp')
+def connect():
+    socketio.start_background_task(background_thread('resp_heart_rate'))
 
-if __name__ =="__main__":
-    app.run(debug=True)
+@socketio.on('heat_body')
+def connect():
+    socketio.start_background_task(background_thread('resp_bp'))
+
+@socketio.on('heart_rate')
+def connect():
+    socketio.start_background_task(background_thread('resp_heat_body'))
+
+@socketio.on('oksi')
+def connect():
+    socketio.start_background_task(background_thread('resp_oksi'))
+
+"""
+Decorator for disconnect
+"""
+@socketio.on('disconnect')
+def disconnect():
+    print('Client disconnected',  request.sid)
+
+if __name__ == '__main__':
+    socketio.run(app)
