@@ -66,7 +66,15 @@ $(document).ready(function () {
   const MAX_DATA_COUNT = 10;
   //connect to the socket server.
   //   var socket = io.connect("http://" + document.domain + ":" + location.port);
-  var socket = io.connect();
+  // namespace = '/test';
+  // var socket = io(namespace);
+
+//   var socket = io.connect('http://localhost:5000/test', {
+//     reconnect: true
+// });
+  // var socket = io(namespace).connect();
+
+  var socket = io.connect('http://localhost:5000');
 
 
   setInterval(function() {
