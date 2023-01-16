@@ -1,0 +1,71 @@
+yang bakalan tak butuhin buat bikin grafik 
+
+- timestamp setiap 5 detik 
+- dalam 1 jam akan ada 12 data 
+- dalam 2 jam akan ada 24 data 
+- dalam 5 jam akan ada 60 data
+- dalan 1 hari akan ada 288 data
+
+tampilkan jadi grafik semua
+
+data yang dilempar ke front end adalah 
+1. bp terbaru
+2. heat terbaru
+3. heart terbaru
+4. oksi terbaru
+
+untuk masalah grafik data nanti masalah front end untuk menampung data dll
+jadi logikanya nanti gini
+
+untuk grafik 1 jam 
+ada dua opsi algoritma
+
+opsi 1:
+1. ambil dan simpan data terbaru yang dilempar oleh backend
+2. disimpan ke dalam list/ array atau semcamnya
+3. ketika panjang data telah sampai 12, hapus data pertama
+
+opsi 2:
+1. buat list/array atau semcamnya sepanjang 12 data dengan data berupa nol nol 
+2. ambil dan simpan data terbaru yang dilempar dari backend
+3. hapus data pertama 
+
+nah sekarang data apa aja yang dibutuhkan oleh front end
+frontend akan menampilkan data dalam bentuk angka tok dan grafik
+grafik hanya butuh dua data yaitu nilai dan waktu 
+karena grafik yang ditampilkan masih dalam 1 hari yang sama 
+maka waktu yang perlu dikirimkan ke depan cukup jam aja dalam wib
+
+yang dikirim kedepan = [nilai, time (jam)]
+
+
+
+sort = {'_id': -1}
+collection.find({}, limit=10).sort(sort)
+
+
+
+algoritma untuk mengirimkan data terbaru adalah 
+1. siapkan variabel asal
+last_bp = {"_id":0, "nilai": 0}
+2. ambil sepuluh data terakhir dari database
+3. ubah data itu menjadi list bernama list_data
+4. membuat kondisi untuk data pertama 
+if last_bp["_id"] == 0:
+    last_bp = list_data[9]
+3. membuat loop 
+for i in len(list_data):
+    if list-data[i]["_id] == last_bp["_id"]:
+        if i == 0:
+            pass
+        else:
+            last_bp = list_data[i-1]
+            kirim data ke front end
+    else:
+        last_bp = list_data[9]
+        kirim data ke front end
+
+
+
+Link penting
+https://stackoverflow.com/questions/48160130/using-flask-socketio-and-the-socketio-client
