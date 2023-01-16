@@ -3,7 +3,6 @@ from flask_socketio import SocketIO
 from random import random, randint  
 from datetime import datetime
 from pymongo import MongoClient
-from format_data import send_data
 from pass_mongo import pass_mongo
 import pytz
 
@@ -71,7 +70,8 @@ def background_thread(ev, last_data_id, db):
             data = last_data[0]['data']
             socketio.emit(ev, {'value': data, "date": "{}:{}".format(str(time.hour), str(time.minute))})
         except:
-            print('tidak ada')
+            None
+            # print('tidak ada')
         socketio.sleep(1)
 
 
@@ -84,9 +84,9 @@ def background_thread(ev, last_data_id, db):
 """
 Serve root index file
 """
-@app.route('/')
-def index():
-    return render_template('index.html', async_mode=socketio.async_mode)
+# @app.route('/')
+# def index():
+#     return render_template('index.html', async_mode=socketio.async_mode)
 
 """
 Decorator for connect
